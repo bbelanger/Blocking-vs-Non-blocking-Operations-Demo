@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <h1>Blocking vs Non-blocking Operations Demo</h1>
+        <p>This demo illustrates how JavaScript operations block the UI during intensive blocking operations, like for example, loops</p>
+        <p>In contrast, this demo also shows how to use timeouts to "break" the operation so that the interface will continue to be responsive even with an operation ongoing</p>
+        <p>To start, click either a Sync Operation or Async Operation. This will loop until 500000, show the count on the text box and display a message. Also, while on that operation, try adding "foo"</p>
+        <input type="text" id="counter">
+        <input type="button" id="syncop" value="Do A Sync Operation">
+        <input type="button" id="asyncop" value="Do An Async Operation">
+        <input type="button" id="addfoo" value="Add Foo While Doing Operation">
+        <ul id="fooList"></ul>
+    
+        <script>
+            window.onload = function(){
+            
+                var fooList = document.getElementById('fooList');
+                var counter = document.getElementById('counter');
+                
+                var syncButton = document.getElementById('syncop');
+                var asyncButton = document.getElementById('asyncop');
+                
+                var loopLength = 500000;
+                
+                //button toggle
+                function disabled(on){
+                    syncButton.disabled = on ? 'disabled' : '';
+                    asyncButton.disabled = on ? 'disabled' : '';
+                }
+                
+                //adds a new item to the list
+                function addItem(text){
+                    var newFoo = document.createElement('li');
+                    var foo = document.createTextNode(text);
+                    newFoo.appendChild(foo);
+                    fooList.appendChild(newFoo);
+                }
+                
+                //adds the foo
+                document.getElementById('addfoo').onclick = function(){
+                    addItem('foo');
+                }
+            
+                //a straight forward loop
+                //this is a blocking operation and will not permit the UI to display
+                //as well as any code after the loop until the loop finishes
+                
+                //in effect, you won't see the count, the post loop logic message
+                //as well as all the "foo" added to the list until after the loop
+                syncButton.onclick = function(){
+                    disabled(true);
+                    for(var i = 0; i < loopLength;i++){
+                        counter.value = i;
+                    }
+                    addItem('i appear after the loop logic');
+                    disabled(false);
+                }
+
+                //a loop using timeouts
+                //this is a non-blocking operation
+                //what it technically does is set aside the operation at a later time
+                //when the set time is reached, it inserts the execution of an iteration 
+                //then finishes and allows other code to execute while it waits for the next iteration
+                //this allows other code after the loop logic to execute
+                
+                //in effect, the message you see the post loop logic message
+                //and the added "foos" even when the loop is ongoing.
+                asyncButton.onclick = function(){
+                    disabled(true);
+                    (function loop(i){
+                        counter.value = i;
+                        if(i<loopLength){
+                            setTimeout(function(){
+                                loop(++i)
+                            },1); 
+                        } else {
+                            disabled(false);
+                        }
+                    }(0));
+                    addItem('i appear after the loop logic');
+                }
+                
+                
+            
+            }
+
+        </script>
+    </body>
+</html>
